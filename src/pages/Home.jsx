@@ -1,11 +1,11 @@
-// src/pages/Home.jsx
 import React, { useState } from "react";
-import { getAccessToken, searchDestinations } from "../api/amadeus";
+import { getAccessToken } from "../api/amadeus";
+import { useNavigate } from "react-router-dom";
 
 function Home() {
   const [city, setCity] = useState("");
-  const [destinations, setDestinations] = useState([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSearch = async () => {
     if (city.trim() === "") {
@@ -14,79 +14,52 @@ function Home() {
     }
 
     setLoading(true);
-    setDestinations([]); // clear previous results
-
     try {
-      // 1. Get access token
-      const token = await getAccessToken();
+      const token = await getAccessToken(
+        import.meta.env.VITE_AMADEUS_CLIENT_ID,
+        import.meta.env.VITE_AMADEUS_CLIENT_SECRET
+      );
 
-      // 2. Fetch destinations
-      const results = await searchDestinations(token, city);
-
-      setDestinations(results);
+      navigate("/destinations", { state: { city, token } });
     } catch (error) {
       console.error(error);
-      alert("Error fetching destinations. Check console for details.");
+      alert("Error connecting to API. Check console for details.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      className="h-screen w-full bg-cover bg-center flex flex-col justify-center items-center text-white relative"
-      style={{
-        backgroundImage:
-          "url('https://images.pexels.com/photos/346885/pexels-photo-346885.jpeg?auto=compress&cs=tinysrgb&w=1600')",
-      }}
-    >
-      {/* Transparent overlay */}
-      <div className="bg-black bg-opacity-50 absolute inset-0"></div>
+    <div className="w-full min-h-screen relative flex items-center justify-center text-white bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
+      {/* Dark overlay for better text readability */}
+      <div className="absolute inset-0 bg-black/30"></div>
 
-      <div className="relative z-10 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold mb-6">
+      {/* Main content */}
+      <div className="relative z-10 flex flex-col items-center text-center px-4">
+        <h1 className="text-5xl md:text-6xl font-bold mb-10 drop-shadow-lg">
           Plan Your Next Adventure ✈
         </h1>
 
-        {/* Search Bar */}
-        <div className="flex gap-2 justify-center mb-6">
+        <div className="flex flex-col md:flex-row gap-6 justify-center items-center w-full max-w-2xl mb-6">
           <input
             type="text"
             placeholder="Enter city name..."
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            className="px-4 py-2 rounded-md text-black w-64 md:w-80 outline-none"
+            className="px-6 py-4 rounded-lg w-full outline-none shadow-md text-lg text-black"
           />
           <button
             onClick={handleSearch}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 transition rounded-md font-semibold"
+            className="px-8 py-4 bg-white text-blue-600 hover:bg-gray-100 transition rounded-lg font-semibold shadow-md text-lg"
           >
-            Search
+            {loading ? "Searching..." : "Search"}
           </button>
         </div>
 
-        {/* Loading */}
-        {loading && <p className="text-lg">Loading destinations...</p>}
-
-        {/* Destinations List */}
-        {!loading && destinations.length > 0 && (
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-black">
-            {destinations.map((dest) => (
-              <div
-                key={dest.id}
-                className="bg-white bg-opacity-90 rounded-lg p-4 shadow-md"
-              >
-                <h2 className="font-bold text-xl mb-2">{dest.name}</h2>
-                <p className="text-gray-700">{dest.address?.countryName}</p>
-                {/* You can add more details or top attractions later */}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* No results message */}
-        {!loading && destinations.length === 0 && city.trim() !== "" && (
-          <p className="text-lg mt-4">No destinations found for "{city}"</p>
+        {loading && (
+          <p className="text-lg mt-6 animate-pulse drop-shadow-lg">
+            Connecting to API...
+          </p>
         )}
       </div>
     </div>
@@ -94,6 +67,18 @@ function Home() {
 }
 
 export default Home;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
