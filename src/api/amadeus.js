@@ -24,21 +24,15 @@ export async function getAccessToken() {
   return cachedToken;
 }
 
-// ✅ Search for real destinations using keyword (city or airport)
+// ✅ Search for destinations by city keyword
 export async function searchDestinations(city) {
   const token = await getAccessToken();
 
   const response = await axios.get(
     "https://test.api.amadeus.com/v1/reference-data/locations",
     {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      params: {
-        keyword: city,
-        subType: "CITY,AIRPORT",
-        page: { limit: 10 },
-      },
+      headers: { Authorization: `Bearer ${token}` },
+      params: { keyword: city, subType: "CITY,AIRPORT", page: { limit: 10 } },
     }
   );
 
@@ -47,8 +41,31 @@ export async function searchDestinations(city) {
     city: item.name,
     country: item.address?.countryName || "Unknown",
     image: `https://source.unsplash.com/featured/?${item.name},travel`,
-    attractions: ["Popular Spot 1", "Popular Spot 2"], // Placeholder, Amadeus has no attractions API in this tier
+    attractions: ["Popular Spot 1", "Popular Spot 2"], // Placeholder
   }));
 }
+
+// ✅ Fetch Flight Offers (mocked for now, can later call real Amadeus API)
+export async function fetchFlightOffers(origin, destination, departureDate, adults = 1) {
+  const token = await getAccessToken();
+
+  // TODO: Replace with real API call if needed
+  return [
+    { id: 1, airline: "Air France", price: "$500", departure: "10:00", arrival: "14:00" },
+    { id: 2, airline: "Emirates", price: "$650", departure: "12:00", arrival: "16:00" },
+  ];
+}
+
+// ✅ Fetch Hotels (mocked for now, can later call real Amadeus API)
+export async function fetchHotels(city) {
+  const token = await getAccessToken();
+
+  // TODO: Replace with real API call if needed
+  return [
+    { id: 1, name: "Hotel Parisian", address: "123 Paris St", price: "$200/night" },
+    { id: 2, name: "Eiffel Stay", address: "456 Champs Elysees", price: "$250/night" },
+  ];
+}
+
 
 
