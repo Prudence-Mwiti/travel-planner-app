@@ -1,56 +1,54 @@
 // src/api/amadeus.js
+import axios from "axios";
 
-const BASE_URL = "https://test.api.amadeus.com";
+let cachedToken = null;
+let tokenExpiry = null;
 
-// Get the client ID and secret from environment variables
-const CLIENT_ID = import.meta.env.VITE_AMADEUS_CLIENT_ID;
-const CLIENT_SECRET = import.meta.env.VITE_AMADEUS_CLIENT_SECRET;
-
-/**
- * Get an access token from Amadeus
- */
+// ✅ Get Auth Token
 export async function getAccessToken() {
-  const response = await fetch(`${BASE_URL}/v1/security/oauth2/token`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      grant_type: "client_credentials",
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to get access token from Amadeus");
+  if (cachedToken && tokenExpiry > Date.now()) {
+    return cachedToken; // Use cached token if valid
   }
 
-  const data = await response.json();
-  return data.access_token;
+  const response = await axios.post(
+    "https://test.api.amadeus.com/v1/security/oauth2/token",
+    new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: import.meta.env.VITE_AMADEUS_CLIENT_ID,
+      client_secret: import.meta.env.VITE_AMADEUS_CLIENT_SECRET,
+    })
+  );
+
+  cachedToken = response.data.access_token;
+  tokenExpiry = Date.now() + response.data.expires_in * 1000;
+  return cachedToken;
 }
 
-/**
- * Search destinations by keyword (city)
- * @param {string} token - Access token from getAccessToken()
- * @param {string} keyword - City name to search
- * @returns {Array} - Array of destination objects
- */
-export async function searchDestinations(token, keyword) {
-  const response = await fetch(
-    `${BASE_URL}/v1/reference-data/locations?keyword=${keyword}&subType=CITY`,
+// ✅ Search for real destinations using keyword (city or airport)
+export async function searchDestinations(city) {
+  const token = await getAccessToken();
+
+  const response = await axios.get(
+    "https://test.api.amadeus.com/v1/reference-data/locations",
     {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      params: {
+        keyword: city,
+        subType: "CITY,AIRPORT",
+        page: { limit: 10 },
+      },
     }
   );
 
-  if (!response.ok) {
-    throw new Error("Failed to search destinations");
-  }
-
-  const data = await response.json();
-  return data.data || []; // returns array of cities
+  return response.data.data.map((item, index) => ({
+    id: index,
+    city: item.name,
+    country: item.address?.countryName || "Unknown",
+    image: `https://source.unsplash.com/featured/?${item.name},travel`,
+    attractions: ["Popular Spot 1", "Popular Spot 2"], // Placeholder, Amadeus has no attractions API in this tier
+  }));
 }
+
 
