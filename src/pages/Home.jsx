@@ -36,7 +36,7 @@ function Home() {
 
       {/* Main content */}
       <div className="relative z-10 flex flex-col items-center text-center px-4">
-        <h1 className="text-5xl md:text-6xl font-bold mb-10 drop-shadow-lg">
+        <h1 className="text-5xl md:text-6xl font-bold mb-10 drop-shadow-lg ">
           Plan Your Next Adventure ✈
         </h1>
 
