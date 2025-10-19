@@ -64,11 +64,24 @@ function Destinations() {
       </div>
     );
 
+  // Function to add destination to itinerary
+  const addToItinerary = (dest) => {
+    const stored = JSON.parse(localStorage.getItem("itinerary")) || [];
+    const exists = stored.some((item) => item.id === dest.id);
+    if (!exists) {
+      stored.push({ ...dest, date: new Date().toLocaleDateString() });
+      localStorage.setItem("itinerary", JSON.stringify(stored));
+      alert(`${dest.city} added to your itinerary!`);
+    } else {
+      alert(`${dest.city} is already in your itinerary.`);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white text-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 text-gray-800">
       {/* HERO Section */}
       <div
-        className="w-full bg-cover bg-center py-20 flex flex-col items-center text-white"
+        className="w-full bg-cover bg-center py-20 flex flex-col items-center text-black"
         style={{ backgroundImage: `url(https://source.unsplash.com/featured/?${city},travel)` }}
       >
         <motion.h1
@@ -88,48 +101,71 @@ function Destinations() {
       </div>
 
       {/* Destinations Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 py-10">
-        {destinations.map((dest, index) => (
-          <motion.div
-            key={dest.id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: index * 0.2 }}
-            className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition duration-300"
-          >
-            <img
-              src={dest.image || `https://source.unsplash.com/featured/?${dest.city},travel`}
-              alt={dest.city}
-              className="h-48 w-full object-cover"
-              onError={(e) => (e.target.src = "https://via.placeholder.com/400x300?text=No+Image")}
-            />
-            <div className="p-5">
-              <h2 className="text-lg font-bold">
-                {dest.city}, <span className="text-gray-500">{dest.country}</span>
-              </h2>
-              <p className="mt-2 text-sm text-gray-600">
-                Top Attractions:{" "}
-                <span className="text-blue-500">
-                  {dest.attractions?.length > 0 ? dest.attractions.join(", ") : "Not available"}
-                </span>
-              </p>
-              <button
-                onClick={() =>
-                  navigate("/destination-details", { state: { destination: dest } })
-                }
-                className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
-              >
-                Explore Destination →
-              </button>
-            </div>
-          </motion.div>
-        ))}
+      <div className="flex justify-center px-6 py-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-7xl">
+          {destinations.map((dest, index) => (
+            <motion.div
+              key={dest.id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.2 }}
+              className="bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition duration-300"
+            >
+             <img
+  src={
+    dest.image
+      ? dest.image
+      : `https://loremflickr.com/600/400/${dest.city},travel?lock=${index}`
+  }
+  alt={dest.city}
+  className="h-48 w-full object-cover"
+  onError={(e) =>
+    (e.target.src = "https://via.placeholder.com/400x300?text=No+Image")
+  }
+/>
+              <div className="p-5 text-gray-800">
+                <h2 className="text-lg font-bold">
+                  {dest.city}, <span className="text-gray-500">{dest.country}</span>
+                </h2>
+                <p className="mt-2 text-sm text-gray-600">
+                  Top Attractions:{" "}
+                  <span className="text-blue-600">
+                    {dest.attractions?.length > 0 ? dest.attractions.join(", ") : "Not available"}
+                  </span>
+                </p>
+
+                {/* Explore Destination Button */}
+                <button
+                  onClick={() =>
+                    navigate("/destination-details", { state: { destination: dest } })
+                  }
+                  className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
+                >
+                  Explore Destination →
+                </button>
+
+                {/* Add to Itinerary Button */}
+                <button
+                  onClick={() => addToItinerary(dest)}
+                  className="mt-2 w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg"
+                >
+                  Add to Itinerary
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
 export default Destinations;
+
+
+
+
+
 
 
 
